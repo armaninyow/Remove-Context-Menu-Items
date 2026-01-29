@@ -1,3 +1,5 @@
+# Remove Unwanted Context Menu Items
+
 ## Contributing
 
 Any help with translating this Windhawk mod is greatly appreciated! Since localization is a very time-consuming process and I’m currently at capacity with development, I won't be able to add further languages on my own. I'm relying on the community to help expand our reach. 
