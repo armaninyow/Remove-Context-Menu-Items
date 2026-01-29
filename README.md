@@ -20,7 +20,7 @@ The mod currently supports:
 If you find a mistake or want to bring the mod to your native language, please follow these steps:
 
 1. **Fork** this repository.
-2. **Create/Update** the file in your fork. New files should follow the format: `(Language)-(Region).txt` (e.g., pt-BR.txt).
+2. **Create/Update** the file in your fork. New files should follow the format: `(Language)-(Region).txt` (e.g., pt-BR.md).
 3. **Commit** your changes.
 4. **Open a Pull Request** to merge your changes back into this main repository.
 
