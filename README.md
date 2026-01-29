@@ -19,9 +19,14 @@ The mod currently supports:
 #### How to Submit Changes
 If you find a mistake or want to bring the mod to your native language, please follow these steps:
 
-1. **Fork** this repository.
+1. **Fork** this repository to your own GitHub account.
 2. **Create/Update** the file in your fork. New files should follow the format: `(Language)-(Region).md` (e.g., `Portuguese (Brazil).md`).
-3. **Commit** your changes.
+3. **Commit** your changes with a clear, descriptive message (e.g., "Add/Fix Brazilian Portuguese translation").
 4. **Open a Pull Request** to merge your changes back into this main repository.
+   * Navigate to the **Pull Requests** tab of the original repository.
+   * Click the green **New Pull Request** button.
+   * Click **"compare across forks"** and select your fork/branch as the "head repository."
+   * **Provide Details:** In the PR description, briefly explain what you changed (e.g., "Fixed a typo" or "Added a full translation for French").
+   * **Review:** Click **Create Pull Request**.
 
 *Note: To find your exact language string, check **Settings > Time & Language > Language & Region** in Windows.*
