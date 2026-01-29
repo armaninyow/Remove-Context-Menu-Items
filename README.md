@@ -12,15 +12,15 @@ I’ve decided to manage all translations directly through GitHub rather using e
 ### Localization & Translations
 
 The mod currently supports:
-* **English:** United States (en-US), United Kingdom (en-GB), Australia (en-AU)
-* **Portuguese:** Brazil (pt-BR), Portugal (pt-PT)
-* **Czech:** Czechia (cs-CZ)
+* English (United States, United Kingdom, Australia)
+* Portuguese (Brazil, Portugal)
+* Čeština (Czech)
 
 #### How to Submit Changes
 If you find a mistake or want to bring the mod to your native language, please follow these steps:
 
 1. **Fork** this repository.
-2. **Create/Update** the file in your fork. New files should follow the format: `(Language)-(Region).md` (e.g., pt-BR.md).
+2. **Create/Update** the file in your fork. New files should follow the format: `(Language)-(Region).md` (e.g., `Portuguese (Brazil).md`).
 3. **Commit** your changes.
 4. **Open a Pull Request** to merge your changes back into this main repository.
 
