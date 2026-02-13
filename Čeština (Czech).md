@@ -41,6 +41,8 @@
 * `New`: Nový
 * `Properties`: Vlastnosti
 * `Paste`: Vložit
+* `Pin to Quick access`: Připnout na Rychlý přístup
+* `Extract All...`: Extrahovat vše...
 
 ### App-Specific Items
 * `Send with Quick Share`: Odeslat pomocí funkce Sdílení nablízko
@@ -56,3 +58,5 @@
 * `Open in Terminal`: Otevřít v terminálu
 * `Always keep on this device`: Vždy ponechat v tomto zařízení
 * `Free up space`: Uvolnit místo
+* `WinRAR`: WinRAR
+
