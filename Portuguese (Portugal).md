@@ -41,6 +41,8 @@
 * `New`: Novo
 * `Properties`: Propriedades
 * `Paste`: Colar
+* `Pin to Quick access`: Afixar no Acesso rápido
+* `Extract All...`: Extrair Todos...
 
 ### App-Specific Items
 * `Send with Quick Share`: Enviar com Partilha Rápida
@@ -56,3 +58,4 @@
 * `Open in Terminal`: Abrir no Terminal
 * `Always keep on this device`: Manter sempre neste dispositivo
 * `Free up space`: Libertar espaço
+* `WinRAR`: WinRAR
