@@ -15,6 +15,7 @@ The mod currently supports:
 * English (United States, United Kingdom, Australia)
 * Portuguese (Brazil, Portugal)
 * Čeština (Czech)
+* Deutsch (Deutschland) - thanks to [Schleifenkratzer](https://github.com/Schleifenkratzer)
 
 #### How to Submit Changes
 If you find a mistake or want to bring the mod to your native language, please follow these steps:
