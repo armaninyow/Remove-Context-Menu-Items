@@ -1,4 +1,4 @@
-# Remove Unwanted Context Menu Items
+# Remove Context Menu Items
 
 ## Contributing
 
