@@ -3,7 +3,8 @@
 * `Ask Copilot`: 
 * `Scan with Microsoft Defender...`: 
 * `Create with Designer`: 
-* `Edit with Clipchamp`: 
+* `Edit with Clipchamp`:
+* `Ask Microsoft 365 Copilot`:
 
 ### Basic Items
 * `Open`: 
