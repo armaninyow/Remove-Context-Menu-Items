@@ -41,7 +41,9 @@
 * `Group by`: 
 * `New`: 
 * `Properties`: 
-* `Paste`: 
+* `Paste`:
+* `Pin to Quick access`:
+* `Extract All...`:
 
 ### App-Specific Items
 * `Send with Quick Share`: 
@@ -56,4 +58,5 @@
 * `NVIDIA Control Panel`: 
 * `Open in Terminal`: 
 * `Always keep on this device`: 
-* `Free up space`: 
+* `Free up space`:
+* `WinRAR`:
