@@ -21,6 +21,7 @@ The mod currently supports:
 * Turkish (Turkiye) - thanks to [bcrtvkcs](https://github.com/bcrtvkcs)
 * Japanese (Japan) - thanks to [haru612](https://github.com/haru612)
 * Polski (Poland) - thanks to [FadeMind](https://github.com/FadeMind)
+* French (France) - thanks to [Catif](https://github.com/Catif)
 
 #### How to Submit Changes / New Language support
 If you find a mistake or want to bring the mod to your native language, please follow these steps:
