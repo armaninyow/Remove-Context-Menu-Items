@@ -1,0 +1,113 @@
+name: Translation issue to pull request
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+jobs:
+  translate:
+    # Only react to issues created by the Translation Helper page
+    if: startsWith(github.event.issue.title, '[Translation] ')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build locale file from issue
+        id: build
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const issue = context.payload.issue;
+            const lang = issue.title.replace(/^\[Translation\]\s+/, '').trim();
+
+            const fail = async (msg) => {
+              await github.rest.issues.createComment({
+                ...context.repo,
+                issue_number: issue.number,
+                body: `Couldn't process this submission: ${msg}`
+              });
+              core.setOutput('ok', 'false');
+            };
+
+            // The language name becomes a filename, so keep it strict
+            if (!/^[\p{L}\p{N}][\p{L}\p{N} ()\-_.']{0,80}$/u.test(lang) || lang.includes('..')) {
+              return fail('the language name contains unsupported characters.');
+            }
+
+            const match = (issue.body || '').match(/````markdown\r?\n([\s\S]*?)\r?\n````/);
+            if (!match) {
+              return fail('no translation block was found in the issue body.');
+            }
+            if (match[1].length > 50000) {
+              return fail('the submission is too large.');
+            }
+
+            // Rebuild the file line by line; anything unexpected is rejected
+            let out = '';
+            let count = 0;
+            for (const raw of match[1].split(/\r?\n/)) {
+              const line = raw.trimEnd();
+              if (!line) continue;
+
+              const h = line.match(/^### (.+)$/);
+              if (h) {
+                out += (out ? '\n' : '') + `### ${h[1]}\n\n`;
+                continue;
+              }
+
+              const e = line.match(/^\* `(.+?)`:[ \t]*(.*)$/);
+              if (e && !e[1].includes('-->')) {
+                out += `<!-- ${e[1]} -->\n* \`${e[1]}\`: ${e[2]}\n\n`;
+                count++;
+                continue;
+              }
+
+              return fail(`unexpected line: ${line.slice(0, 80)}`);
+            }
+
+            if (count === 0) {
+              return fail('no translation entries were found.');
+            }
+
+            fs.mkdirSync('locales', { recursive: true });
+            fs.writeFileSync(`locales/${lang}.md`, out.trim() + '\n');
+
+            core.setOutput('ok', 'true');
+            core.setOutput('lang', lang);
+
+      - name: Open pull request
+        id: cpr
+        if: steps.build.outputs.ok == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          add-paths: locales
+          branch: translation/issue-${{ github.event.issue.number }}
+          commit-message: Add/Update ${{ steps.build.outputs.lang }} translation
+          title: Add/Update ${{ steps.build.outputs.lang }} translation
+          body: |
+            Submitted via the Translation Helper (issue #${{ github.event.issue.number }}).
+
+            Closes #${{ github.event.issue.number }}
+          delete-branch: true
+
+      - name: Reply on the issue
+        if: steps.build.outputs.ok == 'true'
+        uses: actions/github-script@v7
+        env:
+          PR_URL: ${{ steps.cpr.outputs.pull-request-url }}
+        with:
+          script: |
+            const url = process.env.PR_URL;
+            await github.rest.issues.createComment({
+              ...context.repo,
+              issue_number: context.payload.issue.number,
+              body: url
+                ? `Thanks! A pull request was created: ${url}`
+                : 'Thanks! This matches the existing file, so no changes were needed.'
+            });
