@@ -63,6 +63,28 @@
       min-width: 195px;
     }
 
+    .changelog {
+      background-color: var(--surface-color);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 12px 16px;
+      margin-bottom: 20px;
+    }
+
+    .changelog summary {
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .changelog-entry {
+      margin-top: 10px;
+      font-size: 14px;
+    }
+
+    .changelog-entry p {
+      margin: 6px 0 0 0;
+    }
+
     .hint {
       font-size: 13px;
       color: var(--text-secondary);
@@ -205,6 +227,16 @@
   <!-- Inline Status Banner for Errors / Warnings / Success -->
   <div id="statusBanner" role="alert"></div>
 
+  <!-- Changelog -->
+  <details class="changelog" open>
+    <summary>Changelog</summary>
+    <div class="changelog-entry">
+      <strong>Nov 16, 2026</strong>
+      <p>The item <code>NVIDIA Control Panel</code> was renamed to <code>NVIDIA App</code>.</p>
+      <p><strong>Existing languages need updating:</strong> select your language from the dropdown, check the <code>NVIDIA App</code> row (your old translation is carried over automatically), adjust it if needed, and submit.</p>
+    </div>
+  </details>
+
   <!-- Configuration Controls -->
   <div class="controls">
     <div class="controls-row">
@@ -217,8 +249,9 @@
         <option value="">-- Create New Language --</option>
       </select>
     </div>
-    <span class="hint">Format: <code>Language (Region).md</code> inside <code>root/locales/</code>.</span>
-    <span class="hint"><strong>Note:</strong> To find your exact language string, check <code>Settings &gt; Time &amp; Language &gt; Language &amp; Region</code> in Windows.</span>
+    <span class="hint">Format: <code>Language (Region).md</code></span>
+    <span class="hint">Example: <code>Español (México).md</code> or <code>French (France)</code></span>
+    <span class="hint">Note: To find your exact language string, check <code>Settings &gt; Time &amp; Language &gt; Language &amp; Region</code> in Windows.</span>
   </div>
 
   <!-- Translation Entries Table -->
@@ -242,6 +275,12 @@
     const repo = "armaninyow/Remove-Context-Menu-Items";
     const folderPath = "locales";
     const MAX_URL_LENGTH = 7500; // stay under GitHub's URL length limit
+
+    // Items that were renamed: { "old English text": "new English text" }.
+    // Lets old translations carry over into the renamed row when loading an existing file.
+    const renamedItems = {
+      "NVIDIA Control Panel": "NVIDIA App"
+    };
 
     // Exact source items grouped by category
     const sections = {
@@ -302,7 +341,7 @@
         "Edit with Notepad++",
         "Edit with Photos",
         "Edit with Paint",
-        "NVIDIA Control Panel",
+        "NVIDIA App",
         "Open in Terminal",
         "Always keep on this device",
         "Free up space",
@@ -381,7 +420,7 @@
             const langName = file.name.replace(/\.md$/, "");
             const option = document.createElement("option");
             option.value = file.download_url;
-            option.textContent = `Edit existing: ${langName}`;
+            option.textContent = langName;
             select.appendChild(option);
           }
         });
@@ -409,8 +448,7 @@
       }
 
       const fileUrl = select.value;
-      const selectedText = select.options[select.selectedIndex].text;
-      const languageName = selectedText.replace(/^Edit existing:\s*/, "");
+      const languageName = select.options[select.selectedIndex].text;
 
       langInput.value = languageName;
       langInput.readOnly = true;
@@ -432,8 +470,11 @@
           if (match) {
             const originalKey = match[1];
             const translatedValue = match[2];
-            const targetInput = document.querySelector(`input[data-original="${CSS.escape(originalKey)}"]`);
-            if (targetInput) {
+            const isRenamed = Object.prototype.hasOwnProperty.call(renamedItems, originalKey);
+            const currentKey = isRenamed ? renamedItems[originalKey] : originalKey;
+            const targetInput = document.querySelector(`input[data-original="${CSS.escape(currentKey)}"]`);
+            // A renamed (old) entry only fills the row if it is still empty
+            if (targetInput && (!isRenamed || !targetInput.value)) {
               targetInput.value = translatedValue;
             }
           }
