@@ -4,22 +4,127 @@
   <meta charset="UTF-8">
   <title>Translation Helper</title>
   <style>
-    body { font-family: system-ui, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-    th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
-    th { background-color: #f4f4f4; }
-    input[type="text"] { width: 95%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; }
-    .controls { margin-bottom: 20px; display: flex; gap: 10px; align-items: center; }
-    button { background: #2ea44f; color: white; border: none; padding: 12px 20px; font-size: 16px; border-radius: 6px; cursor: pointer; margin-top: 20px; }
-    button:hover { background: #2c974b; }
+    :root {
+      --bg-color: #0d1117;
+      --surface-color: #161b22;
+      --border-color: #30363d;
+      --text-primary: #c9d1d9;
+      --text-secondary: #8b949e;
+      --accent-green: #238636;
+      --accent-green-hover: #2ea043;
+      --section-bg: #21262d;
+      --input-bg: #010409;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-primary);
+      max-width: 850px;
+      margin: 40px auto;
+      padding: 0 20px;
+      line-height: 1.5;
+    }
+
+    h2 {
+      border-bottom: 1px solid var(--border-color);
+      padding-bottom: 10px;
+    }
+
+    .controls {
+      background-color: var(--surface-color);
+      border: 1px solid var(--border-color);
+      padding: 16px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .controls-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .hint {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      background-color: var(--surface-color);
+    }
+
+    th, td {
+      border: 1px solid var(--border-color);
+      padding: 10px 12px;
+      text-align: left;
+    }
+
+    th {
+      background-color: var(--section-bg);
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    code {
+      background-color: rgba(110, 118, 129, 0.2);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, monospace;
+      font-size: 13px;
+    }
+
+    input[type="text"] {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px 10px;
+      background-color: var(--input-bg);
+      color: var(--text-primary);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    input[type="text"]:focus {
+      outline: none;
+      border-color: #58a6ff;
+    }
+
+    button {
+      background-color: var(--accent-green);
+      color: #ffffff;
+      border: 1px solid rgba(240, 246, 252, 0.1);
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 24px;
+      transition: background-color 0.15s ease;
+    }
+
+    button:hover {
+      background-color: var(--accent-green-hover);
+    }
   </style>
 </head>
 <body>
 
   <h2>Translate Context Menu Items</h2>
+
   <div class="controls">
-    <label><strong>Language Name / Code (e.g., Spanish / es):</strong></label>
-    <input type="text" id="langName" placeholder="e.g. Spanish (es)" style="width: 250px;">
+    <div class="controls-row">
+      <label for="langName"><strong>Target Language & Region:</strong></label>
+      <input type="text" id="langName" placeholder="e.g. Portuguese (Brazil)" style="width: 280px;">
+    </div>
+    <span class="hint">Format: <code>Language (Region)</code> — e.g., <code>Portuguese (Brazil)</code> or <code>Spanish (Spain)</code>. This automatically sets the filename to <code>Language (Region).md</code>.</span>
   </div>
 
   <table>
@@ -32,10 +137,9 @@
     <tbody id="tableBody"></tbody>
   </table>
 
-  <button onclick="submitTranslation()">Submit Translation to GitHub</button>
+  <button onclick="submitTranslation()">Create Pull Request on GitHub</button>
 
   <script>
-    // 1. Define your sections and items
     const sections = {
       "Bloatware Items": [
         "Move to OneDrive", "Ask Copilot", "Scan with Microsoft Defender...",
@@ -60,11 +164,10 @@
       ]
     };
 
-    // 2. Render the table rows dynamically
     const tbody = document.getElementById("tableBody");
     for (const [section, items] of Object.entries(sections)) {
       const headerRow = document.createElement("tr");
-      headerRow.innerHTML = `<td colspan="2" style="background:#eef; font-weight:bold;">${section}</td>`;
+      headerRow.innerHTML = `<td colspan="2" style="background-color: var(--section-bg); font-weight: bold;">${section}</td>`;
       tbody.appendChild(headerRow);
 
       items.forEach(item => {
@@ -77,11 +180,15 @@
       });
     }
 
-    // 3. Build Markdown and open pre-filled GitHub Issue/PR link
     function submitTranslation() {
-      const lang = document.getElementById("langName").value.trim() || "New Language";
+      const langInput = document.getElementById("langName").value.trim();
+      if (!langInput) {
+        alert("Please enter the Target Language & Region (e.g., Portuguese (Brazil)) before submitting.");
+        document.getElementById("langName").focus();
+        return;
+      }
+
       const inputs = document.querySelectorAll("#tableBody input");
-      
       let mdOutput = "";
       let currentSection = "";
 
@@ -91,18 +198,20 @@
         const val = input.value.trim();
 
         if (sec !== currentSection) {
-          mdOutput += `\n### ${sec}\n`;
+          mdOutput += (currentSection ? "\n" : "") + `### ${sec}\n\n`;
           currentSection = sec;
         }
-        mdOutput += `* \`${orig}\`: ${val}\n`;
+        mdOutput += `<!-- ${orig} -->\n* \`${orig}\`: ${val}\n\n`;
       });
 
-      // GitHub URL query trick to pre-fill a new Issue with the generated Markdown
       const repo = "armaninyow/Remove-Context-Menu-Items";
-      const title = encodeURIComponent(`Translation: ${lang}`);
-      const body = encodeURIComponent(`Here is the translation for **${lang}**:\n\n\`\`\`markdown${mdOutput}\`\`\``);
-      
-      window.open(`https://github.com/${repo}/issues/new?title=${title}&body=${body}`, "_blank");
+      const fileName = encodeURIComponent(`${langInput}.md`);
+      const content = encodeURIComponent(mdOutput.trim() + "\n");
+      const message = encodeURIComponent(`Add ${langInput} translation`);
+
+      // Directs to GitHub's new file editor on main. 
+      // For contributors without direct write access, GitHub automatically prompts them to fork & propose changes as a Pull Request.
+      window.open(`https://github.com/${repo}/new/main?filename=${fileName}&value=${content}&message=${message}`, "_blank");
     }
   </script>
 </body>
