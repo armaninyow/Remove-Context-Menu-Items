@@ -178,6 +178,13 @@
       color: #ff7b72;
     }
 
+    /* Success variant (green) */
+    #statusBanner.success {
+      border-color: #2ea043;
+      background-color: rgba(46, 160, 67, 0.15);
+      color: #56d364;
+    }
+
     @media (max-width: 600px) {
       .controls-row label {
         min-width: 100%;
@@ -192,7 +199,7 @@
 
   <h2>Translate Context Menu Items</h2>
 
-  <!-- Inline Status Banner for Errors / Warnings -->
+  <!-- Inline Status Banner for Errors / Warnings / Success -->
   <div id="statusBanner" role="alert"></div>
 
   <!-- Configuration Controls -->
@@ -299,11 +306,13 @@
     };
 
     /**
-     * Displays a non-blocking inline status message instead of window.alert()
+     * Displays a non-blocking inline status message instead of window.alert().
+     * type: "error" (default, red) or "success" (green)
      */
-    function showMessage(msg) {
+    function showMessage(msg, type = "error") {
       const banner = document.getElementById("statusBanner");
       banner.textContent = msg;
+      banner.classList.toggle("success", type === "success");
       banner.style.display = "block";
       banner.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
@@ -311,6 +320,7 @@
     function hideMessage() {
       const banner = document.getElementById("statusBanner");
       banner.style.display = "none";
+      banner.classList.remove("success");
     }
 
     /**
@@ -328,7 +338,7 @@
 
         items.forEach(item => {
           const row = document.createElement("tr");
-          
+
           const labelCell = document.createElement("td");
           const codeEl = document.createElement("code");
           codeEl.textContent = item;
@@ -430,7 +440,9 @@
     }
 
     /**
-     * Compiles the inputs into Markdown and opens GitHub's file creation/PR URL
+     * Compiles the inputs into Markdown, then either:
+     *  - new language: opens GitHub's "create file" page, pre-filled via the URL
+     *  - existing language: copies the Markdown and opens GitHub's "edit file" page
      */
     function submitTranslation() {
       hideMessage();
@@ -459,12 +471,32 @@
         mdOutput += `<!-- ${orig} -->\n* \`${orig}\`: ${val}\n\n`;
       });
 
+      const finalMd = mdOutput.trim() + "\n";
       const fileName = encodeURIComponent(`${langInput}.md`);
-      const content = encodeURIComponent(mdOutput.trim() + "\n");
-      const message = encodeURIComponent(`Add/Update ${langInput} translation`);
+      const isEditing = !!document.getElementById("fileSelect").value;
 
-      const githubUrl = `https://github.com/${repo}/new/main?filename=${folderPath}/${fileName}&value=${content}&message=${message}`;
-      window.open(githubUrl, "_blank");
+      if (isEditing) {
+        // Existing file: GitHub's edit page can't be pre-filled, so copy the content first
+        window.open(
+          `https://github.com/${repo}/edit/main/${folderPath}/${fileName}`,
+          "_blank"
+        );
+        navigator.clipboard.writeText(finalMd).then(
+          () => showMessage(
+            "Copied! On the GitHub page: click in the editor, press Ctrl+A, then Ctrl+V to replace the contents, then commit.",
+            "success"
+          ),
+          () => showMessage("Couldn't copy automatically. Please copy your translations manually.")
+        );
+      } else {
+        // New file: GitHub can pre-fill everything via the URL
+        const content = encodeURIComponent(finalMd);
+        const message = encodeURIComponent(`Add ${langInput} translation`);
+        window.open(
+          `https://github.com/${repo}/new/main?filename=${folderPath}/${fileName}&value=${content}&message=${message}`,
+          "_blank"
+        );
+      }
     }
 
     // Initialize on load
