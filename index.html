@@ -2,8 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Translation Helper</title>
   <style>
+    /* GitHub Dark Theme Color Tokens */
     :root {
       --bg-color: #0d1117;
       --surface-color: #161b22;
@@ -14,6 +16,11 @@
       --accent-green-hover: #2ea043;
       --section-bg: #21262d;
       --input-bg: #010409;
+      --focus-border: #58a6ff;
+    }
+
+    * {
+      box-sizing: border-box;
     }
 
     body {
@@ -22,15 +29,18 @@
       color: var(--text-primary);
       max-width: 850px;
       margin: 40px auto;
-      padding: 0 20px;
+      padding: 0 20px 60px 20px;
       line-height: 1.5;
     }
 
     h2 {
       border-bottom: 1px solid var(--border-color);
       padding-bottom: 10px;
+      margin-bottom: 20px;
+      font-weight: 600;
     }
 
+    /* Controls Box */
     .controls {
       background-color: var(--surface-color);
       border: 1px solid var(--border-color);
@@ -49,28 +59,13 @@
       flex-wrap: wrap;
     }
 
+    .controls-row label {
+      min-width: 195px;
+    }
+
     .hint {
       font-size: 13px;
       color: var(--text-secondary);
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-      background-color: var(--surface-color);
-    }
-
-    th, td {
-      border: 1px solid var(--border-color);
-      padding: 10px 12px;
-      text-align: left;
-    }
-
-    th {
-      background-color: var(--section-bg);
-      color: var(--text-primary);
-      font-weight: 600;
     }
 
     code {
@@ -81,29 +76,79 @@
       font-size: 13px;
     }
 
+    /* Inputs & Dropdowns */
     input[type="text"], select {
-      box-sizing: border-box;
       padding: 8px 10px;
       background-color: var(--input-bg);
       color: var(--text-primary);
       border: 1px solid var(--border-color);
       border-radius: 6px;
       font-size: 14px;
+      transition: border-color 0.15s ease;
     }
 
     input[type="text"] {
       width: 100%;
     }
 
-    select {
+    #langName, #fileSelect {
       width: 280px;
+      max-width: 100%;
+    }
+
+    input[type="text"]:read-only {
+      opacity: 0.7;
+      cursor: not-allowed;
+      background-color: #161b22;
     }
 
     input[type="text"]:focus, select:focus {
       outline: none;
-      border-color: #58a6ff;
+      border-color: var(--focus-border);
     }
 
+    /* Translation Table */
+    .table-wrapper {
+      width: 100%;
+      overflow-x: auto;
+      border-radius: 6px;
+      border: 1px solid var(--border-color);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background-color: var(--surface-color);
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--border-color);
+      border-right: 1px solid var(--border-color);
+      padding: 10px 12px;
+      text-align: left;
+    }
+
+    th:last-child, td:last-child {
+      border-right: none;
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    th {
+      background-color: var(--section-bg);
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    .section-header td {
+      background-color: var(--section-bg);
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    /* Submit Button */
     button {
       background-color: var(--accent-green);
       color: #ffffff;
@@ -120,16 +165,41 @@
     button:hover {
       background-color: var(--accent-green-hover);
     }
+
+    /* Custom Notification Banner (Replaces alert) */
+    #statusBanner {
+      display: none;
+      padding: 12px 16px;
+      margin-bottom: 20px;
+      border-radius: 6px;
+      font-size: 14px;
+      border: 1px solid #f85149;
+      background-color: rgba(248, 81, 73, 0.15);
+      color: #ff7b72;
+    }
+
+    @media (max-width: 600px) {
+      .controls-row label {
+        min-width: 100%;
+      }
+      #langName, #fileSelect {
+        width: 100%;
+      }
+    }
   </style>
 </head>
 <body>
 
   <h2>Translate Context Menu Items</h2>
 
+  <!-- Inline Status Banner for Errors / Warnings -->
+  <div id="statusBanner" role="alert"></div>
+
+  <!-- Configuration Controls -->
   <div class="controls">
     <div class="controls-row">
-      <label for="langName"><strong>Target Language & Region:</strong></label>
-      <input type="text" id="langName" placeholder="e.g. Portuguese (Brazil)" style="width: 280px;">
+      <label for="langName"><strong>Target Language &amp; Region:</strong></label>
+      <input type="text" id="langName" placeholder="e.g. Portuguese (Brazil)">
     </div>
     <div class="controls-row">
       <label for="fileSelect"><strong>Or Load Existing:</strong></label>
@@ -138,128 +208,238 @@
       </select>
     </div>
     <span class="hint">Format: <code>Language (Region).md</code> inside <code>root/locales/</code>.</span>
+    <span class="hint"><strong>Note:</strong> To find your exact language string, check <code>Settings &gt; Time &amp; Language &gt; Language &amp; Region</code> in Windows.</span>
   </div>
 
-  <table>
-    <thead>
-      <tr>
-        <th style="width: 45%;">Original English Text</th>
-        <th style="width: 55%;">Your Translation</th>
-      </tr>
-    </thead>
-    <tbody id="tableBody"></tbody>
-  </table>
+  <!-- Translation Entries Table -->
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 45%;">Original English Text</th>
+          <th style="width: 55%;">Your Translation</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
 
+  <!-- Primary Action -->
   <button onclick="submitTranslation()">Create Pull Request on GitHub</button>
 
   <script>
     const repo = "armaninyow/Remove-Context-Menu-Items";
     const folderPath = "locales";
 
+    // Exact source items grouped by category
     const sections = {
       "Bloatware Items": [
-        "Move to OneDrive", "Ask Copilot", "Scan with Microsoft Defender...",
-        "Create with Designer", "Edit with Clipchamp", "Ask Microsoft 365 Copilot"
+        "Move to OneDrive",
+        "Ask Copilot",
+        "Scan with Microsoft Defender...",
+        "Create with Designer",
+        "Edit with Clipchamp",
+        "Ask Microsoft 365 Copilot"
       ],
       "Basic Items": [
-        "Open", "Open with", "Cut", "Copy", "Create shortcut", "Delete", "Rename",
-        "Send to", "Open in new tab", "Open in new window", "Edit", "Play",
-        "Preview", "Print", "Share", "Refresh", "Copy as path",
-        "Customize this folder...", "Add to Favorites", "Pin to Start",
-        "Cast to Device", "Give access to", "Restore previous versions",
-        "Include in library", "Rotate right", "Rotate left", "Display settings",
-        "Personalize", "Set as desktop background", "View", "Sort by", "Group by",
-        "New", "Properties", "Paste", "Pin to Quick access", "Extract All..."
+        "Open",
+        "Open with",
+        "Cut",
+        "Copy",
+        "Create shortcut",
+        "Delete",
+        "Rename",
+        "Send to",
+        "Open in new tab",
+        "Open in new window",
+        "Edit",
+        "Play",
+        "Preview",
+        "Print",
+        "Share",
+        "Refresh",
+        "Copy as path",
+        "Customize this folder...",
+        "Add to Favorites",
+        "Pin to Start",
+        "Cast to Device",
+        "Give access to",
+        "Restore previous versions",
+        "Include in library",
+        "Rotate right",
+        "Rotate left",
+        "Display settings",
+        "Personalize",
+        "Set as desktop background",
+        "View",
+        "Sort by",
+        "Group by",
+        "New",
+        "Properties",
+        "Paste",
+        "Pin to Quick access",
+        "Extract All..."
       ],
       "App-Specific Items": [
-        "Send with Quick Share", "Add to VLC media player's Playlist",
-        "Play with VLC media player", "Add to Media Player play queue",
-        "Play with Media Player", "Edit in Notepad", "Edit with Notepad++",
-        "Edit with Photos", "Edit with Paint", "NVIDIA Control Panel",
-        "Open in Terminal", "Always keep on this device", "Free up space", "WinRAR"
+        "Send with Quick Share",
+        "Add to VLC media player's Playlist",
+        "Play with VLC media player",
+        "Add to Media Player play queue",
+        "Play with Media Player",
+        "Edit in Notepad",
+        "Edit with Notepad++",
+        "Edit with Photos",
+        "Edit with Paint",
+        "NVIDIA Control Panel",
+        "Open in Terminal",
+        "Always keep on this device",
+        "Free up space",
+        "WinRAR"
       ]
     };
 
-    const tbody = document.getElementById("tableBody");
-    for (const [section, items] of Object.entries(sections)) {
-      const headerRow = document.createElement("tr");
-      headerRow.innerHTML = `<td colspan="2" style="background-color: var(--section-bg); font-weight: bold;">${section}</td>`;
-      tbody.appendChild(headerRow);
-
-      items.forEach(item => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td><code>${item}</code></td>
-          <td><input type="text" data-section="${section}" data-original="${item}" placeholder="Type translation..."></td>
-        `;
-        tbody.appendChild(row);
-      });
+    /**
+     * Displays a non-blocking inline status message instead of window.alert()
+     */
+    function showMessage(msg) {
+      const banner = document.getElementById("statusBanner");
+      banner.textContent = msg;
+      banner.style.display = "block";
+      banner.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
 
+    function hideMessage() {
+      const banner = document.getElementById("statusBanner");
+      banner.style.display = "none";
+    }
+
+    /**
+     * Builds the translation table rows from the sections dictionary
+     */
+    function renderTable() {
+      const tbody = document.getElementById("tableBody");
+      tbody.innerHTML = "";
+
+      for (const [section, items] of Object.entries(sections)) {
+        const headerRow = document.createElement("tr");
+        headerRow.className = "section-header";
+        headerRow.innerHTML = `<td colspan="2">${section}</td>`;
+        tbody.appendChild(headerRow);
+
+        items.forEach(item => {
+          const row = document.createElement("tr");
+          
+          const labelCell = document.createElement("td");
+          const codeEl = document.createElement("code");
+          codeEl.textContent = item;
+          labelCell.appendChild(codeEl);
+
+          const inputCell = document.createElement("td");
+          const inputEl = document.createElement("input");
+          inputEl.type = "text";
+          inputEl.setAttribute("data-section", section);
+          inputEl.setAttribute("data-original", item);
+          inputEl.placeholder = "Type translation...";
+          inputCell.appendChild(inputEl);
+
+          row.appendChild(labelCell);
+          row.appendChild(inputCell);
+          tbody.appendChild(row);
+        });
+      }
+    }
+
+    /**
+     * Fetches existing .md files from GitHub locales folder to populate the dropdown
+     */
     async function loadExistingFiles() {
       const select = document.getElementById("fileSelect");
       try {
         const response = await fetch(`https://api.github.com/repos/${repo}/contents/${folderPath}`);
         if (!response.ok) return;
         const files = await response.json();
-        
+
+        if (!Array.isArray(files)) return;
+
         files.forEach(file => {
-          if (file.name.endsWith(".md")) {
-            const langName = file.name.replace(".md", "");
+          if (file.name && file.name.endsWith(".md")) {
+            const langName = file.name.replace(/\.md$/, "");
             const option = document.createElement("option");
             option.value = file.download_url;
             option.textContent = `Edit existing: ${langName}`;
             select.appendChild(option);
           }
         });
-      } catch (e) {
-        console.error("Could not load existing translation files.", e);
+      } catch (err) {
+        console.error("Could not load existing translation files:", err);
       }
     }
 
+    /**
+     * Loads and parses an existing markdown file when selected from the dropdown
+     */
     async function handleFileSelection() {
+      hideMessage();
       const select = document.getElementById("fileSelect");
       const langInput = document.getElementById("langName");
-      
+
+      // Reset state if creating a new language
       if (!select.value) {
         langInput.value = "";
         langInput.readOnly = false;
-        document.querySelectorAll("#tableBody input").forEach(i => i.value = "");
+        document.querySelectorAll("#tableBody input").forEach(input => {
+          input.value = "";
+        });
         return;
       }
 
       const fileUrl = select.value;
-      const fileName = select.options[select.selectedIndex].text.replace("Edit existing: ", "");
-      langInput.value = fileName;
+      const selectedText = select.options[select.selectedIndex].text;
+      const languageName = selectedText.replace(/^Edit existing:\s*/, "");
+
+      langInput.value = languageName;
       langInput.readOnly = true;
 
       try {
-        const res = await fetch(fileUrl);
-        const text = await res.text();
-        
-        document.querySelectorAll("#tableBody input").forEach(i => i.value = "");
-        const lines = text.split("\n");
+        const response = await fetch(fileUrl);
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const text = await response.text();
+
+        // Clear existing inputs before populating
+        document.querySelectorAll("#tableBody input").forEach(input => {
+          input.value = "";
+        });
+
+        // Parse lines matching: * `Original`: Translation
+        const lines = text.split(/\r?\n/);
         lines.forEach(line => {
           const match = line.match(/^\* `(.+?)`:\s*(.*)$/);
           if (match) {
-            const input = document.querySelector(`input[data-original="${CSS.escape(match[1])}"]`);
-            if (input) {
-              input.value = match[2];
+            const originalKey = match[1];
+            const translatedValue = match[2];
+            const targetInput = document.querySelector(`input[data-original="${CSS.escape(originalKey)}"]`);
+            if (targetInput) {
+              targetInput.value = translatedValue;
             }
           }
         });
-      } catch (e) {
-        alert("Failed to load file contents.");
+      } catch (err) {
+        showMessage("Failed to load existing translation file contents from GitHub.");
+        console.error(err);
       }
     }
 
-    loadExistingFiles();
-
+    /**
+     * Compiles the inputs into Markdown and opens GitHub's file creation/PR URL
+     */
     function submitTranslation() {
-      const langInput = document.getElementById("langName").value.trim();
+      hideMessage();
+      const langInputEl = document.getElementById("langName");
+      const langInput = langInputEl.value.trim();
+
       if (!langInput) {
-        alert("Please enter or select a Target Language & Region.");
-        document.getElementById("langName").focus();
+        showMessage("Please enter or select a Target Language & Region before submitting.");
+        langInputEl.focus();
         return;
       }
 
@@ -283,8 +463,13 @@
       const content = encodeURIComponent(mdOutput.trim() + "\n");
       const message = encodeURIComponent(`Add/Update ${langInput} translation`);
 
-      window.open(`https://github.com/${repo}/new/main?filename=${folderPath}/${fileName}&value=${content}&message=${message}`, "_blank");
+      const githubUrl = `https://github.com/${repo}/new/main?filename=${folderPath}/${fileName}&value=${content}&message=${message}`;
+      window.open(githubUrl, "_blank");
     }
+
+    // Initialize on load
+    renderTable();
+    loadExistingFiles();
   </script>
 </body>
 </html>
