@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Translation Helper</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { border: 1px solid #ddd; padding: 10px; text-align: left; }
+    th { background-color: #f4f4f4; }
+    input[type="text"] { width: 95%; padding: 6px; border: 1px solid #ccc; border-radius: 4px; }
+    .controls { margin-bottom: 20px; display: flex; gap: 10px; align-items: center; }
+    button { background: #2ea44f; color: white; border: none; padding: 12px 20px; font-size: 16px; border-radius: 6px; cursor: pointer; margin-top: 20px; }
+    button:hover { background: #2c974b; }
+  </style>
+</head>
+<body>
+
+  <h2>Translate Context Menu Items</h2>
+  <div class="controls">
+    <label><strong>Language Name / Code (e.g., Spanish / es):</strong></label>
+    <input type="text" id="langName" placeholder="e.g. Spanish (es)" style="width: 250px;">
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width: 45%;">Original English Text</th>
+        <th style="width: 55%;">Your Translation</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+
+  <button onclick="submitTranslation()">Submit Translation to GitHub</button>
+
+  <script>
+    // 1. Define your sections and items
+    const sections = {
+      "Bloatware Items": [
+        "Move to OneDrive", "Ask Copilot", "Scan with Microsoft Defender...",
+        "Create with Designer", "Edit with Clipchamp", "Ask Microsoft 365 Copilot"
+      ],
+      "Basic Items": [
+        "Open", "Open with", "Cut", "Copy", "Create shortcut", "Delete", "Rename",
+        "Send to", "Open in new tab", "Open in new window", "Edit", "Play",
+        "Preview", "Print", "Share", "Refresh", "Copy as path",
+        "Customize this folder...", "Add to Favorites", "Pin to Start",
+        "Cast to Device", "Give access to", "Restore previous versions",
+        "Include in library", "Rotate right", "Rotate left", "Display settings",
+        "Personalize", "Set as desktop background", "View", "Sort by", "Group by",
+        "New", "Properties", "Paste", "Pin to Quick access", "Extract All..."
+      ],
+      "App-Specific Items": [
+        "Send with Quick Share", "Add to VLC media player's Playlist",
+        "Play with VLC media player", "Add to Media Player play queue",
+        "Play with Media Player", "Edit in Notepad", "Edit with Notepad++",
+        "Edit with Photos", "Edit with Paint", "NVIDIA Control Panel",
+        "Open in Terminal", "Always keep on this device", "Free up space", "WinRAR"
+      ]
+    };
+
+    // 2. Render the table rows dynamically
+    const tbody = document.getElementById("tableBody");
+    for (const [section, items] of Object.entries(sections)) {
+      const headerRow = document.createElement("tr");
+      headerRow.innerHTML = `<td colspan="2" style="background:#eef; font-weight:bold;">${section}</td>`;
+      tbody.appendChild(headerRow);
+
+      items.forEach(item => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td><code>${item}</code></td>
+          <td><input type="text" data-section="${section}" data-original="${item}" placeholder="Type translation..."></td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    // 3. Build Markdown and open pre-filled GitHub Issue/PR link
+    function submitTranslation() {
+      const lang = document.getElementById("langName").value.trim() || "New Language";
+      const inputs = document.querySelectorAll("#tableBody input");
+      
+      let mdOutput = "";
+      let currentSection = "";
+
+      inputs.forEach(input => {
+        const sec = input.getAttribute("data-section");
+        const orig = input.getAttribute("data-original");
+        const val = input.value.trim();
+
+        if (sec !== currentSection) {
+          mdOutput += `\n### ${sec}\n`;
+          currentSection = sec;
+        }
+        mdOutput += `* \`${orig}\`: ${val}\n`;
+      });
+
+      // GitHub URL query trick to pre-fill a new Issue with the generated Markdown
+      const repo = "armaninyow/Remove-Context-Menu-Items";
+      const title = encodeURIComponent(`Translation: ${lang}`);
+      const body = encodeURIComponent(`Here is the translation for **${lang}**:\n\n\`\`\`markdown${mdOutput}\`\`\``);
+      
+      window.open(`https://github.com/${repo}/issues/new?title=${title}&body=${body}`, "_blank");
+    }
+  </script>
+</body>
+</html>
