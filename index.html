@@ -4,36 +4,18 @@
   <meta charset="UTF-8">
   <title>Translation Helper</title>
   <style>
-    :root {
-      --bg-color: #0d1117;
-      --surface-color: #161b22;
-      --border-color: #30363d;
-      --text-primary: #c9d1d9;
-      --text-secondary: #8b949e;
-      --accent-green: #238636;
-      --accent-green-hover: #2ea043;
-      --section-bg: #21262d;
-      --input-bg: #010409;
-    }
-
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
-      background-color: var(--bg-color);
-      color: var(--text-primary);
+      background-color: #0d1117;
+      color: #c9d1d9;
       max-width: 850px;
       margin: 40px auto;
       padding: 0 20px;
       line-height: 1.5;
     }
-
-    h2 {
-      border-bottom: 1px solid var(--border-color);
-      padding-bottom: 10px;
-    }
-
     .controls {
-      background-color: var(--surface-color);
-      border: 1px solid var(--border-color);
+      background-color: #161b22;
+      border: 1px solid #30363d;
       padding: 16px;
       border-radius: 6px;
       margin-bottom: 20px;
@@ -41,117 +23,65 @@
       flex-direction: column;
       gap: 12px;
     }
-
-    .controls-row {
-      display: flex;
-      gap: 12px;
-      align-items: center;
-      flex-wrap: wrap;
+    input, select {
+      padding: 8px 10px;
+      background-color: #010409;
+      color: #c9d1d9;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      font-size: 14px;
+      width: 100%;
+      box-sizing: border-box;
     }
-
-    .hint {
-      font-size: 13px;
-      color: var(--text-secondary);
-    }
-
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 10px;
-      background-color: var(--surface-color);
+      background-color: #161b22;
     }
-
     th, td {
-      border: 1px solid var(--border-color);
+      border: 1px solid #30363d;
       padding: 10px 12px;
       text-align: left;
     }
-
-    th {
-      background-color: var(--section-bg);
-      color: var(--text-primary);
-      font-weight: 600;
-    }
-
-    code {
-      background-color: rgba(110, 118, 129, 0.2);
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-family: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, monospace;
-      font-size: 13px;
-    }
-
-    input[type="text"], select {
-      box-sizing: border-box;
-      padding: 8px 10px;
-      background-color: var(--input-bg);
-      color: var(--text-primary);
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      font-size: 14px;
-    }
-
-    input[type="text"] {
-      width: 100%;
-    }
-
-    select {
-      width: 280px;
-    }
-
-    input[type="text"]:focus, select:focus {
-      outline: none;
-      border-color: #58a6ff;
-    }
-
+    th { background-color: #21262d; }
     button {
-      background-color: var(--accent-green);
+      background-color: #238636;
       color: #ffffff;
-      border: 1px solid rgba(240, 246, 252, 0.1);
+      border: none;
       padding: 12px 24px;
       font-size: 16px;
       font-weight: 600;
       border-radius: 6px;
       cursor: pointer;
       margin-top: 24px;
-      transition: background-color 0.15s ease;
     }
-
-    button:hover {
-      background-color: var(--accent-green-hover);
-    }
+    button:hover { background-color: #2ea043; }
   </style>
 </head>
 <body>
 
-  <h2>Translate Context Menu Items</h2>
+  <h2>Translation Helper</h2>
 
   <div class="controls">
-    <div class="controls-row">
-      <label for="langName"><strong>Target Language & Region:</strong></label>
-      <input type="text" id="langName" placeholder="e.g. Portuguese (Brazil)" style="width: 280px;">
-    </div>
-    <div class="controls-row">
-      <label for="fileSelect"><strong>Or Load Existing:</strong></label>
-      <select id="fileSelect" onchange="handleFileSelection()">
-        <option value="">-- Create New Language --</option>
-      </select>
-    </div>
-    <span class="hint">Format: <code>Language (Region).md</code> inside <code>root/locales/</code>.</span>
-    <span class="hint"><strong>Note:</strong> To find your exact language string, check <code>Settings > Time &amp; Language > Language &amp; Region</code> in Windows.</span>
+    <label><strong>GitHub Personal Access Token (repo scope):</strong></label>
+    <input type="password" id="patToken" placeholder="ghp_xxxxxxxxxxxx">
+    
+    <label><strong>Target Language & Region:</strong></label>
+    <input type="text" id="langName" placeholder="e.g. Portuguese (Brazil)">
   </div>
 
   <table>
     <thead>
       <tr>
-        <th style="width: 45%;">Original English Text</th>
-        <th style="width: 55%;">Your Translation</th>
+        <th>Original English Text</th>
+        <th>Your Translation</th>
       </tr>
     </thead>
     <tbody id="tableBody"></tbody>
   </table>
 
-  <button onclick="submitTranslation()">Create Pull Request on GitHub</button>
+  <button onclick="saveTranslation()">Save to Repository</button>
 
   <script>
     const repo = "armaninyow/Remove-Context-Menu-Items";
@@ -161,131 +91,76 @@
       "Bloatware Items": [
         "Move to OneDrive", "Ask Copilot", "Scan with Microsoft Defender...",
         "Create with Designer", "Edit with Clipchamp", "Ask Microsoft 365 Copilot"
-      ],
-      "Basic Items": [
-        "Open", "Open with", "Cut", "Copy", "Create shortcut", "Delete", "Rename",
-        "Send to", "Open in new tab", "Open in new window", "Edit", "Play",
-        "Preview", "Print", "Share", "Refresh", "Copy as path",
-        "Customize this folder...", "Add to Favorites", "Pin to Start",
-        "Cast to Device", "Give access to", "Restore previous versions",
-        "Include in library", "Rotate right", "Rotate left", "Display settings",
-        "Personalize", "Set as desktop background", "View", "Sort by", "Group by",
-        "New", "Properties", "Paste", "Pin to Quick access", "Extract All..."
-      ],
-      "App-Specific Items": [
-        "Send with Quick Share", "Add to VLC media player's Playlist",
-        "Play with VLC media player", "Add to Media Player play queue",
-        "Play with Media Player", "Edit in Notepad", "Edit with Notepad++",
-        "Edit with Photos", "Edit with Paint", "NVIDIA Control Panel",
-        "Open in Terminal", "Always keep on this device", "Free up space", "WinRAR"
       ]
     };
 
     const tbody = document.getElementById("tableBody");
     for (const [section, items] of Object.entries(sections)) {
       const headerRow = document.createElement("tr");
-      headerRow.innerHTML = `<td colspan="2" style="background-color: var(--section-bg); font-weight: bold;">${section}</td>`;
+      headerRow.innerHTML = `<td colspan="2" style="background-color: #21262d; font-weight: bold;">${section}</td>`;
       tbody.appendChild(headerRow);
 
       items.forEach(item => {
         const row = document.createElement("tr");
         row.innerHTML = `
           <td><code>${item}</code></td>
-          <td><input type="text" data-section="${section}" data-original="${item}" placeholder="Type translation..."></td>
+          <td><input type="text" data-original="${item}" placeholder="Translation..."></td>
         `;
         tbody.appendChild(row);
       });
     }
 
-    async function loadExistingFiles() {
-      const select = document.getElementById("fileSelect");
-      try {
-        const response = await fetch(`https://api.github.com/repos/${repo}/contents/${folderPath}`);
-        if (!response.ok) return;
-        const files = await response.json();
-        
-        files.forEach(file => {
-          if (file.name.endsWith(".md")) {
-            const langName = file.name.replace(".md", "");
-            const option = document.createElement("option");
-            option.value = file.download_url;
-            option.textContent = `Edit existing: ${langName}`;
-            select.appendChild(option);
-          }
-        });
-      } catch (e) {
-        console.error("Could not load existing translation files.", e);
-      }
-    }
+    async function saveTranslation() {
+      const token = document.getElementById("patToken").value.trim();
+      const langName = document.getElementById("langName").value.trim();
 
-    async function handleFileSelection() {
-      const select = document.getElementById("fileSelect");
-      const langInput = document.getElementById("langName");
-      
-      if (!select.value) {
-        langInput.value = "";
-        langInput.readOnly = false;
-        document.querySelectorAll("#tableBody input").forEach(i => i.value = "");
+      if (!token || !langName) {
+        alert("Please enter your GitHub Token and Target Language.");
         return;
       }
 
-      const fileUrl = select.value;
-      const fileName = select.options[select.selectedIndex].text.replace("Edit existing: ", "");
-      langInput.value = fileName;
-      langInput.readOnly = true;
-
-      try {
-        const res = await fetch(fileUrl);
-        const text = await res.text();
-        
-        document.querySelectorAll("#tableBody input").forEach(i => i.value = "");
-        const lines = text.split("\n");
-        lines.forEach(line => {
-          const match = line.match(/^\* `(.+?)`:\s*(.*)$/);
-          if (match) {
-            const input = document.querySelector(`input[data-original="${CSS.escape(match[1])}"]`);
-            if (input) {
-              input.value = match[2];
-            }
-          }
-        });
-      } catch (e) {
-        alert("Failed to load file contents.");
-      }
-    }
-
-    loadExistingFiles();
-
-    function submitTranslation() {
-      const langInput = document.getElementById("langName").value.trim();
-      if (!langInput) {
-        alert("Please enter or select a Target Language & Region.");
-        document.getElementById("langName").focus();
-        return;
-      }
-
-      const inputs = document.querySelectorAll("#tableBody input");
       let mdOutput = "";
-      let currentSection = "";
-
-      inputs.forEach(input => {
-        const sec = input.getAttribute("data-section");
+      document.querySelectorAll("#tableBody input").forEach(input => {
         const orig = input.getAttribute("data-original");
         const val = input.value.trim();
-
-        if (sec !== currentSection) {
-          mdOutput += (currentSection ? "\n" : "") + `### ${sec}\n\n`;
-          currentSection = sec;
-        }
-        mdOutput += `<!-- ${orig} -->\n* \`${orig}\`: ${val}\n\n`;
+        mdOutput += `* \`${orig}\`: ${val}\n\n`;
       });
 
-      const isExisting = document.getElementById("fileSelect").value !== "";
-      const fileName = encodeURIComponent(`${langInput}.md`);
-      const content = encodeURIComponent(mdOutput.trim() + "\n");
-      const message = encodeURIComponent(`${isExisting ? "Update" : "Add"} ${langInput} translation`);
+      const filePath = `${folderPath}/${langName}.md`;
+      const url = `https://api.github.com/repos/${repo}/contents/${filePath}`;
 
-      window.open(`https://github.com/${repo}/new/main?filename=${folderPath}/${fileName}&value=${content}&message=${message}`, "_blank");
+      // Check if file exists to get SHA
+      let sha = null;
+      const checkRes = await fetch(url, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (checkRes.ok) {
+        const data = await checkRes.json();
+        sha = data.sha;
+      }
+
+      // Push change
+      const body = {
+        message: `Update ${langName} translation`,
+        content: btoa(unescape(encodeURIComponent(mdOutput)))
+      };
+      if (sha) body.sha = sha;
+
+      const res = await fetch(url, {
+        method: "PUT",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(body)
+      });
+
+      if (res.ok) {
+        alert("Saved successfully!");
+      } else {
+        const err = await res.json();
+        alert("Error: " + err.message);
+      }
     }
   </script>
 </body>
