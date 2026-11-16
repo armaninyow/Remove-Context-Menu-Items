@@ -269,7 +269,7 @@
 
   <!-- Primary Action -->
   <button onclick="submitTranslation()">Submit Translation on GitHub</button>
-  <p class="hint submit-hint">A GitHub page will open with everything filled in. Just click <strong>Submit new issue</strong>; a pull request is created automatically.</p>
+  <p class="hint submit-hint">A GitHub page will open with everything filled in. Just click <strong>Create</strong>; a pull request is created automatically.</p>
 
   <script>
     const repo = "armaninyow/Remove-Context-Menu-Items";
@@ -501,6 +501,15 @@
       }
 
       const inputs = document.querySelectorAll("#tableBody input");
+
+      const hasTranslation = Array.from(inputs).some(input => input.value.trim() !== "");
+      if (!hasTranslation) {
+        showMessage("Please fill in at least one translation before submitting.");
+        const firstInput = inputs[0];
+        if (firstInput) firstInput.focus();
+        return;
+      }
+
       let md = "";
       let currentSection = "";
 
@@ -519,7 +528,7 @@
       // Four backticks so the entries' own backticks don't break the block
       const body =
         "<!-- translation-submission -->\n" +
-        "Submitted via the Translation Helper. Just click **Submit new issue**; " +
+        "Submitted via the Translation Helper. Just click **Create**; " +
         "a pull request will be created automatically.\n\n" +
         "````markdown\n" + md.trim() + "\n````\n";
 
@@ -536,7 +545,7 @@
       window.open(`${base}?title=${encodeURIComponent(title)}`, "_blank");
       navigator.clipboard.writeText(body).then(
         () => showMessage(
-          "Your submission is large, so it was copied instead. On the GitHub page, click the description box, press Ctrl+V, then click Submit new issue.",
+          "Your submission is large, so it was copied instead. On the GitHub page, click the description box, press Ctrl+V, then click Create.",
           "success"
         ),
         () => showMessage("Couldn't copy automatically. Please try again or contact the maintainer.")
