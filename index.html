@@ -404,28 +404,69 @@
     }
 
     /**
-     * Fetches existing .md files from GitHub locales folder to populate the dropdown
+     * Existing-language list: cached for a few minutes because GitHub's API
+     * allows only 60 unauthenticated requests per hour per IP address.
+     */
+    const FILES_CACHE_KEY = "locales-list-v1";
+    const FILES_CACHE_TTL = 10 * 60 * 1000; // 10 minutes
+
+    function readFilesCache() {
+      try {
+        const cached = JSON.parse(localStorage.getItem(FILES_CACHE_KEY));
+        return cached && Array.isArray(cached.files) ? cached : null;
+      } catch (err) {
+        return null;
+      }
+    }
+
+    function writeFilesCache(files) {
+      try {
+        localStorage.setItem(FILES_CACHE_KEY, JSON.stringify({ time: Date.now(), files }));
+      } catch (err) {
+        // Storage unavailable: just skip caching
+      }
+    }
+
+    function addFileOptions(files) {
+      const select = document.getElementById("fileSelect");
+      files.forEach(file => {
+        const option = document.createElement("option");
+        option.value = file.url;
+        option.textContent = file.name;
+        select.appendChild(option);
+      });
+    }
+
+    /**
+     * Fetches existing .md files from the GitHub locales folder to populate the dropdown
      */
     async function loadExistingFiles() {
-      const select = document.getElementById("fileSelect");
+      const cached = readFilesCache();
+      if (cached && Date.now() - cached.time < FILES_CACHE_TTL) {
+        addFileOptions(cached.files);
+        return;
+      }
+
       try {
         const response = await fetch(`https://api.github.com/repos/${repo}/contents/${folderPath}`);
-        if (!response.ok) return;
-        const files = await response.json();
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const data = await response.json();
+        if (!Array.isArray(data)) throw new Error("Unexpected response");
 
-        if (!Array.isArray(files)) return;
+        const files = data
+          .filter(file => file.name && file.name.endsWith(".md"))
+          .map(file => ({ name: file.name.replace(/\.md$/, ""), url: file.download_url }));
 
-        files.forEach(file => {
-          if (file.name && file.name.endsWith(".md")) {
-            const langName = file.name.replace(/\.md$/, "");
-            const option = document.createElement("option");
-            option.value = file.download_url;
-            option.textContent = langName;
-            select.appendChild(option);
-          }
-        });
+        writeFilesCache(files);
+        addFileOptions(files);
       } catch (err) {
         console.error("Could not load existing translation files:", err);
+        if (cached) {
+          // Fall back to the older list rather than showing nothing
+          addFileOptions(cached.files);
+        } else {
+          showMessage("Couldn't load the list of existing languages from GitHub (you may have hit GitHub's rate limit). Try again in a few minutes. You can still create a new language.");
+        }
       }
     }
 
