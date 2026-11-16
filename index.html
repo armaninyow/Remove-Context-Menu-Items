@@ -151,7 +151,7 @@
     <tbody id="tableBody"></tbody>
   </table>
 
-  <button id="submitBtn" onclick="submitTranslation()">Create Pull Request on GitHub</button>
+  <button onclick="submitTranslation()">Create Pull Request on GitHub</button>
 
   <script>
     const repo = "armaninyow/Remove-Context-Menu-Items";
@@ -221,12 +221,10 @@
     async function handleFileSelection() {
       const select = document.getElementById("fileSelect");
       const langInput = document.getElementById("langName");
-      const submitBtn = document.getElementById("submitBtn");
       
       if (!select.value) {
         langInput.value = "";
         langInput.readOnly = false;
-        submitBtn.textContent = "Create Pull Request on GitHub";
         document.querySelectorAll("#tableBody input").forEach(i => i.value = "");
         return;
       }
@@ -235,7 +233,6 @@
       const fileName = select.options[select.selectedIndex].text.replace("Edit existing: ", "");
       langInput.value = fileName;
       langInput.readOnly = true;
-      submitBtn.textContent = "Copy Updated Translation & Open GitHub Editor";
 
       try {
         const res = await fetch(fileUrl);
@@ -259,7 +256,7 @@
 
     loadExistingFiles();
 
-    async function submitTranslation() {
+    function submitTranslation() {
       const langInput = document.getElementById("langName").value.trim();
       if (!langInput) {
         alert("Please enter or select a Target Language & Region.");
@@ -283,24 +280,12 @@
         mdOutput += `<!-- ${orig} -->\n* \`${orig}\`: ${val}\n\n`;
       });
 
-      const finalMarkdown = mdOutput.trim() + "\n";
-      const fileName = `${langInput}.md`;
-      const select = document.getElementById("fileSelect");
-      const isExisting = select.value !== "";
+      const isExisting = document.getElementById("fileSelect").value !== "";
+      const fileName = encodeURIComponent(`${langInput}.md`);
+      const content = encodeURIComponent(mdOutput.trim() + "\n");
+      const message = encodeURIComponent(`${isExisting ? "Update" : "Add"} ${langInput} translation`);
 
-      if (isExisting) {
-        try {
-          await navigator.clipboard.writeText(finalMarkdown);
-          alert("Updated translation copied to clipboard!\n\nOn the GitHub page that opens next:\n1. Click inside the text editor\n2. Select all (Ctrl+A / Cmd+A) and paste (Ctrl+V / Cmd+V)\n3. Click 'Commit changes'");
-        } catch (err) {
-          alert("Opening GitHub editor. Copy your translation and replace the file contents.");
-        }
-        window.open(`https://github.com/${repo}/edit/main/${folderPath}/${encodeURIComponent(fileName)}`, "_blank");
-      } else {
-        const content = encodeURIComponent(finalMarkdown);
-        const message = encodeURIComponent(`Add ${langInput} translation`);
-        window.open(`https://github.com/${repo}/new/main?filename=${folderPath}/${encodeURIComponent(fileName)}&value=${content}&message=${message}`, "_blank");
-      }
+      window.open(`https://github.com/${repo}/new/main?filename=${folderPath}/${fileName}&value=${content}&message=${message}`, "_blank");
     }
   </script>
 </body>
