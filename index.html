@@ -166,6 +166,10 @@
       background-color: var(--accent-green-hover);
     }
 
+    .submit-hint {
+      margin-top: 10px;
+    }
+
     /* Custom Notification Banner (Replaces alert) */
     #statusBanner {
       display: none;
@@ -178,7 +182,6 @@
       color: #ff7b72;
     }
 
-    /* Success variant (green) */
     #statusBanner.success {
       border-color: #2ea043;
       background-color: rgba(46, 160, 67, 0.15);
@@ -232,11 +235,13 @@
   </div>
 
   <!-- Primary Action -->
-  <button onclick="submitTranslation()">Create Pull Request on GitHub</button>
+  <button onclick="submitTranslation()">Submit Translation on GitHub</button>
+  <p class="hint submit-hint">A GitHub page will open with everything filled in. Just click <strong>Submit new issue</strong>; a pull request is created automatically.</p>
 
   <script>
     const repo = "armaninyow/Remove-Context-Menu-Items";
     const folderPath = "locales";
+    const MAX_URL_LENGTH = 7500; // stay under GitHub's URL length limit
 
     // Exact source items grouped by category
     const sections = {
@@ -440,9 +445,8 @@
     }
 
     /**
-     * Compiles the inputs into Markdown, then either:
-     *  - new language: opens GitHub's "create file" page, pre-filled via the URL
-     *  - existing language: copies the Markdown and opens GitHub's "edit file" page
+     * Compiles the inputs into a compact Markdown block and opens a pre-filled
+     * GitHub issue. A GitHub Action turns the issue into a pull request.
      */
     function submitTranslation() {
       hideMessage();
@@ -456,7 +460,7 @@
       }
 
       const inputs = document.querySelectorAll("#tableBody input");
-      let mdOutput = "";
+      let md = "";
       let currentSection = "";
 
       inputs.forEach(input => {
@@ -465,38 +469,37 @@
         const val = input.value.trim();
 
         if (sec !== currentSection) {
-          mdOutput += (currentSection ? "\n" : "") + `### ${sec}\n\n`;
+          md += (currentSection ? "\n" : "") + `### ${sec}\n\n`;
           currentSection = sec;
         }
-        mdOutput += `<!-- ${orig} -->\n* \`${orig}\`: ${val}\n\n`;
+        md += `* \`${orig}\`: ${val}\n`;
       });
 
-      const finalMd = mdOutput.trim() + "\n";
-      const fileName = encodeURIComponent(`${langInput}.md`);
-      const isEditing = !!document.getElementById("fileSelect").value;
+      // Four backticks so the entries' own backticks don't break the block
+      const body =
+        "<!-- translation-submission -->\n" +
+        "Submitted via the Translation Helper. Just click **Submit new issue**; " +
+        "a pull request will be created automatically.\n\n" +
+        "````markdown\n" + md.trim() + "\n````\n";
 
-      if (isEditing) {
-        // Existing file: GitHub's edit page can't be pre-filled, so copy the content first
-        window.open(
-          `https://github.com/${repo}/edit/main/${folderPath}/${fileName}`,
-          "_blank"
-        );
-        navigator.clipboard.writeText(finalMd).then(
-          () => showMessage(
-            "Copied! On the GitHub page: click in the editor, press Ctrl+A, then Ctrl+V to replace the contents, then commit.",
-            "success"
-          ),
-          () => showMessage("Couldn't copy automatically. Please copy your translations manually.")
-        );
-      } else {
-        // New file: GitHub can pre-fill everything via the URL
-        const content = encodeURIComponent(finalMd);
-        const message = encodeURIComponent(`Add ${langInput} translation`);
-        window.open(
-          `https://github.com/${repo}/new/main?filename=${folderPath}/${fileName}&value=${content}&message=${message}`,
-          "_blank"
-        );
+      const title = `[Translation] ${langInput}`;
+      const base = `https://github.com/${repo}/issues/new`;
+      const url = `${base}?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}`;
+
+      if (url.length <= MAX_URL_LENGTH) {
+        window.open(url, "_blank");
+        return;
       }
+
+      // Fallback: too long for a URL, so copy the body and let the volunteer paste it once
+      window.open(`${base}?title=${encodeURIComponent(title)}`, "_blank");
+      navigator.clipboard.writeText(body).then(
+        () => showMessage(
+          "Your submission is large, so it was copied instead. On the GitHub page, click the description box, press Ctrl+V, then click Submit new issue.",
+          "success"
+        ),
+        () => showMessage("Couldn't copy automatically. Please try again or contact the maintainer.")
+      );
     }
 
     // Initialize on load
