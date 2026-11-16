@@ -39,7 +39,7 @@
       margin-bottom: 20px;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 12px;
     }
 
     .controls-row {
@@ -81,8 +81,7 @@
       font-size: 13px;
     }
 
-    input[type="text"] {
-      width: 100%;
+    input[type="text"], select {
       box-sizing: border-box;
       padding: 8px 10px;
       background-color: var(--input-bg);
@@ -92,7 +91,15 @@
       font-size: 14px;
     }
 
-    input[type="text"]:focus {
+    input[type="text"] {
+      width: 100%;
+    }
+
+    select {
+      width: 280px;
+    }
+
+    input[type="text"]:focus, select:focus {
       outline: none;
       border-color: #58a6ff;
     }
@@ -124,7 +131,13 @@
       <label for="langName"><strong>Target Language & Region:</strong></label>
       <input type="text" id="langName" placeholder="e.g. Portuguese (Brazil)" style="width: 280px;">
     </div>
-    <span class="hint">Format: <code>Language (Region)</code> — e.g., <code>Portuguese (Brazil)</code> or <code>Español (México)</code>. This automatically sets the filename to <code>Language (Region).md</code>.</span>
+    <div class="controls-row">
+      <label for="fileSelect"><strong>Or Load Existing:</strong></label>
+      <select id="fileSelect" onchange="handleFileSelection()">
+        <option value="">-- Create New Language --</option>
+      </select>
+    </div>
+    <span class="hint">Format: <code>Language (Region).md</code> inside <code>root/locales/</code>.</span>
     <span class="hint"><strong>Note:</strong> To find your exact language string, check <code>Settings > Time &amp; Language > Language &amp; Region</code> in Windows.</span>
   </div>
 
@@ -141,6 +154,9 @@
   <button onclick="submitTranslation()">Create Pull Request on GitHub</button>
 
   <script>
+    const repo = "armaninyow/Remove-Context-Menu-Items";
+    const folderPath = "locales";
+
     const sections = {
       "Bloatware Items": [
         "Move to OneDrive", "Ask Copilot", "Scan with Microsoft Defender...",
@@ -181,10 +197,66 @@
       });
     }
 
+    async function loadExistingFiles() {
+      const select = document.getElementById("fileSelect");
+      try {
+        const response = await fetch(`https://api.github.com/repos/${repo}/contents/${folderPath}`);
+        if (!response.ok) return;
+        const files = await response.json();
+        
+        files.forEach(file => {
+          if (file.name.endsWith(".md")) {
+            const langName = file.name.replace(".md", "");
+            const option = document.createElement("option");
+            option.value = file.download_url;
+            option.textContent = `Edit existing: ${langName}`;
+            select.appendChild(option);
+          }
+        });
+      } catch (e) {
+        console.error("Could not load existing translation files.", e);
+      }
+    }
+
+    async function handleFileSelection() {
+      const select = document.getElementById("fileSelect");
+      const langInput = document.getElementById("langName");
+      
+      if (!select.value) {
+        langInput.value = "";
+        document.querySelectorAll("#tableBody input").forEach(i => i.value = "");
+        return;
+      }
+
+      const fileUrl = select.value;
+      const fileName = select.options[select.selectedIndex].text.replace("Edit existing: ", "");
+      langInput.value = fileName;
+
+      try {
+        const res = await fetch(fileUrl);
+        const text = await res.text();
+        
+        const lines = text.split("\n");
+        lines.forEach(line => {
+          const match = line.match(/^\* `(.+?)`:\s*(.*)$/);
+          if (match) {
+            const input = document.querySelector(`input[data-original="${CSS.escape(match[1])}"]`);
+            if (input) {
+              input.value = match[2];
+            }
+          }
+        });
+      } catch (e) {
+        alert("Failed to load file contents.");
+      }
+    }
+
+    loadExistingFiles();
+
     function submitTranslation() {
       const langInput = document.getElementById("langName").value.trim();
       if (!langInput) {
-        alert("Please enter the Target Language & Region (e.g., Portuguese (Brazil)) before submitting.");
+        alert("Please enter or select a Target Language & Region.");
         document.getElementById("langName").focus();
         return;
       }
@@ -205,12 +277,11 @@
         mdOutput += `<!-- ${orig} -->\n* \`${orig}\`: ${val}\n\n`;
       });
 
-      const repo = "armaninyow/Remove-Context-Menu-Items";
       const fileName = encodeURIComponent(`${langInput}.md`);
       const content = encodeURIComponent(mdOutput.trim() + "\n");
-      const message = encodeURIComponent(`Add ${langInput} translation`);
+      const message = encodeURIComponent(`Update ${langInput} translation`);
 
-      window.open(`https://github.com/${repo}/new/main?filename=${fileName}&value=${content}&message=${message}`, "_blank");
+      window.open(`https://github.com/${repo}/new/main?filename=${folderPath}/${fileName}&value=${content}&message=${message}`, "_blank");
     }
   </script>
 </body>
