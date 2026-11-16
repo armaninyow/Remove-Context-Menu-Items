@@ -88,6 +88,9 @@ jobs:
         with:
           add-paths: locales
           branch: translation/issue-${{ github.event.issue.number }}
+          # The volunteer is the commit author (credited on the contributors graph);
+          # the bot is only the committer.
+          author: ${{ github.event.issue.user.login }} <${{ github.event.issue.user.id }}+${{ github.event.issue.user.login }}@users.noreply.github.com>
           commit-message: Add/Update ${{ steps.build.outputs.lang }} translation
           title: Add/Update ${{ steps.build.outputs.lang }} translation
           body: |
