@@ -124,7 +124,8 @@
       <label for="langName"><strong>Target Language & Region:</strong></label>
       <input type="text" id="langName" placeholder="e.g. Portuguese (Brazil)" style="width: 280px;">
     </div>
-    <span class="hint">Format: <code>Language (Region)</code> — e.g., <code>Portuguese (Brazil)</code> or <code>Spanish (Spain)</code>. This automatically sets the filename to <code>Language (Region).md</code>.</span>
+    <span class="hint">Format: <code>Language (Region)</code> — e.g., <code>Portuguese (Brazil)</code> or <code>Español (México)</code>. This automatically sets the filename to <code>Language (Region).md</code>.</span>
+    <span class="hint"><strong>Note:</strong> To find your exact language string, check <code>Settings > Time &amp; Language > Language &amp; Region</code> in Windows.</span>
   </div>
 
   <table>
@@ -209,8 +210,6 @@
       const content = encodeURIComponent(mdOutput.trim() + "\n");
       const message = encodeURIComponent(`Add ${langInput} translation`);
 
-      // Directs to GitHub's new file editor on main. 
-      // For contributors without direct write access, GitHub automatically prompts them to fork & propose changes as a Pull Request.
       window.open(`https://github.com/${repo}/new/main?filename=${fileName}&value=${content}&message=${message}`, "_blank");
     }
   </script>
