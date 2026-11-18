@@ -6,9 +6,6 @@ Any help with translating this Windhawk mod is greatly appreciated! Since locali
 
 Contributors will be credited and mentioned within the mod.
 
-### Why GitHub?
-I’ve decided to manage all translations directly through GitHub rather than using external tools. While I considered options like Google Sheets, GitHub is simply more secure and keeps everything organized alongside the code. It also allows us to avoid the high costs of professional translation platforms while keeping the project open and transparent.
-
 ### How to Submit Changes / New Language support
 If you find a mistake or want to bring the mod to your native language, use the **Translation Helper**. You don't need to fork the repository, edit files, or open a pull request yourself. You only need a free GitHub account.
 
