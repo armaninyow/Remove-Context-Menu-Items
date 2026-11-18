@@ -23,7 +23,7 @@ The mod currently supports:
 * Polski (Poland) - thanks to [FadeMind](https://github.com/FadeMind)
 * French (France) - thanks to [Catif](https://github.com/Catif)
 
-#### How to Submit Changes / New Language support
+### How to Submit Changes / New Language support
 If you find a mistake or want to bring the mod to your native language, use the **Translation Helper**. You don't need to fork the repository, edit files, or open a pull request yourself. You only need a free GitHub account.
 
 1. **Open the [Translation Helper](https://armaninyow.github.io/Remove-Context-Menu-Items/).**
